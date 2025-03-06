@@ -23,3 +23,24 @@ go.work.sum
 
 # env file
 .env
+.vscode
+# SvelteKit specific ignores
+/node_modules/
+/.svelte-kit/
+/build/
+/package/
+.env.*
+!.env.example
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+paradedb_smaraka
+
+# Editor directories and files
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+.DS_Store
+/pkg/
+/vendor/

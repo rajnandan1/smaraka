@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS subscription;
+
+DROP TABLE IF EXISTS orders;

@@ -1,0 +1,1 @@
+ALTER TABLE job_queue ADD CONSTRAINT unique_job_data_org_id UNIQUE (job_data, org_id);

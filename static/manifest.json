@@ -1,0 +1,38 @@
+{
+	"short_name": "OkBookmarks",
+	"name": "OkBookmarks",
+	"description": "Best way to keep track of your bookmarks on the web.",
+	"icons": [
+		{
+			"src": "/app/android-chrome-192x192.png",
+			"type": "image/png",
+			"sizes": "192x192"
+		},
+		{
+			"src": "/app/android-chrome-512x512.png",
+			"type": "image/png",
+			"sizes": "512x512"
+		}
+	],
+	"id": "/app",
+	"start_url": "/app",
+	"background_color": "#0d0d0d",
+	"display": "standalone",
+	"scope": "/",
+	"theme_color": "#dbb291",
+	"orientation": "portrait",
+	"screenshots": [
+		{
+			"src": "/assets/img/desk.png",
+			"type": "image/png",
+			"sizes": "3024x1718",
+			"form_factor": "wide"
+		},
+		{
+			"src": "/assets/img/sshero.png",
+			"type": "image/jpg",
+			"sizes": "1125x2436",
+			"form_factor": "narrow"
+		}
+	]
+}

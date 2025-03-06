@@ -1,0 +1,63 @@
+* {
+  font-family: "Libre Franklin", sans-serif;
+}
+body {
+  scroll-behavior: smooth;
+}
+
+.search-bar {
+  position: fixed;
+}
+
+.cover-image {
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.shadow-bk {
+  box-shadow:
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+    rgba(0, 0, 0, 0.1) 0px 10px 15px -3px,
+    rgba(0, 0, 0, 0.1) 0px 4px 6px -4px;
+  transition: box-shadow 0.3s ease;
+}
+.shadow-bk:focus {
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 50px;
+}
+.dark .shadow-bk {
+  box-shadow: rgba(237, 173, 133, 0.2) 0px 20px 35px -15px;
+}
+.dark .shadow-bk:focus {
+  box-shadow: rgba(237, 173, 133, 0.2) 0px 10px 35px -15px;
+}
+.two-line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.dark .bgg-card {
+  background: linear-gradient(180deg, #1e1e1e 0%, rgb(20, 20, 20) 100%);
+}
+
+input[type="file"]::file-selector-button {
+  display: none;
+}
+
+.dark input::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.p-table .p-row:last-child {
+  border-bottom: 0;
+}
+
+#search-box:focus + button {
+  opacity: 1;
+}
+
+.search-input-submit {
+  transition: opacity 0.2s;
+}

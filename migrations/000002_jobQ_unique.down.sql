@@ -1,0 +1,2 @@
+ALTER TABLE job_queue
+DROP CONSTRAINT unique_job_data_org_id;
