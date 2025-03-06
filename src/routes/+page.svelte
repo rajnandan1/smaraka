@@ -117,7 +117,7 @@
     </div>
 
     <div class="flex items-center gap-4">
-      <Button variant="outline">
+      <Button variant="outline" href="https://github.com/rajnandan1/smaraka">
         <Github class="mr-2 h-4 w-4" />
         Fork me on Github
       </Button>

@@ -13,6 +13,7 @@
     ChevronDown,
     Github,
     House,
+    Coffee,
     Receipt,
     BookLock,
     X,
@@ -214,9 +215,13 @@
                   <MessageCircleQuestion class="mr-2 h-4 w-4" />
                   Help & Support
                 </DropdownMenu.Item>
-                <DropdownMenu.Item class="cursor-pointer" href="{base}/billing">
-                  <Receipt class="mr-2 h-4 w-4" />
-                  Billing
+                <DropdownMenu.Item class="cursor-pointer" href="https://github.com/rajnandan1/smaraka">
+                  <Github class="mr-2 h-4 w-4" />
+                  Github
+                </DropdownMenu.Item>
+                <DropdownMenu.Item class="cursor-pointer" href="https://github.com/rajnandan1/smaraka">
+                  <Coffee class="mr-2 h-4 w-4" />
+                  Buy me a coffee
                 </DropdownMenu.Item>
                 <DropdownMenu.Separator class="border" />
                 <DropdownMenu.Item class="cursor-pointer" href="/api/ui/logout">
