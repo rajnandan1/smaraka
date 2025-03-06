@@ -44,3 +44,5 @@ paradedb_smaraka
 .DS_Store
 /pkg/
 /vendor/
+/bin/
+/tmp/

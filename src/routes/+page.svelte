@@ -137,7 +137,7 @@
     </div>
 
     <div class="mt-10 flex flex-wrap justify-center gap-4">
-      <Button size="lg">Get Started</Button>
+      <Button size="lg">Documentation</Button>
     </div>
 
     <div
