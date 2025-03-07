@@ -187,7 +187,7 @@
                   <Moon class="absolute mr-2 h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                   Toggle theme
                 </DropdownMenu.Item>
-                <DropdownMenu.Item class="cursor-pointer" href="/api/bookmarks/export">
+                <DropdownMenu.Item class="cursor-pointer" href="/api/ui/url/bookmarks-export">
                   <FileDown class="mr-2 h-4 w-4" />
                   Export Data
                 </DropdownMenu.Item>

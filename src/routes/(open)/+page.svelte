@@ -1,7 +1,7 @@
 <!-- Hero -->
 <script>
-  import "../app.css";
-  import "../mybookmark.css";
+  import "../../app.css";
+  import "../../mybookmark.css";
   import { ModeWatcher, setMode } from "mode-watcher";
   import { onMount } from "svelte";
   import { Button } from "$lib/components/ui/button";

@@ -7,3 +7,12 @@
 Smaraka is a simple and easy to use library for creating and managing bookmarks in your web application. It is built using Go and Svelte.
 
 Smaraka is a sanskrit word which means "Memorial" or "Monument". It is a place where you can store your bookmarks and access them whenever you want.
+
+## Get started
+
+### Prerequisites
+
+- Go
+- Node.js
+- NPM
+- Postgres 16

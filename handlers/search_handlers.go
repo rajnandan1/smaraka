@@ -203,7 +203,7 @@ func (h *HandlersImplementation) DeleteBookmarkByID(c echo.Context) error {
 func (h *HandlersImplementation) ExportBookmarks(c echo.Context) error {
 	ctx := c.Request().Context()
 	orgUser := mddls.GetOrgUserFromEchoContext(c)
-	fileName := "bookmarks_okBookarms.html"
+	fileName := "smaraka_" + orgUser.OrganizationID + ".html"
 	createdAt := time.Now().Unix()
 	lastModifiedAt := time.Now().Unix()
 	htmlMiddle := ""

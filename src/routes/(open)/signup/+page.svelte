@@ -7,9 +7,9 @@
   import { signup } from "$lib/api";
   import { LoaderCircle } from "lucide-svelte";
 
-  let email = "rajnandan1@gmail.com";
-  let password = "password";
-  let name = "some name";
+  let email = "";
+  let password = "";
+  let name = "";
   let error = "";
   let loading = false;
 
@@ -57,7 +57,7 @@
   </div>
   <div
     class="hidden h-screen bg-card md:flex"
-    style="background-image: url(road.svg);background-repeat: no-repeat;background-size: 80%; background-position: bottom;"
+    style="background-image: url({base}/road.svg);background-repeat: no-repeat;background-size: 80%; background-position: bottom;"
   ></div>
   <div class="col-span-2 px-4 md:col-span-1">
     <Card.Root class="mx-auto mt-32 max-w-md border-none bg-transparent md:mt-48">

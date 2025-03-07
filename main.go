@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -42,9 +41,6 @@ func main() {
 		log.Printf("postgresConnectionString: %s", postgresConnectionString)
 	}
 
-	fmt.Println("--------------")
-	fmt.Println(postgresConnectionString)
-
 	crypto, err := crypt.ConfigureCrypt(ctx, config.VaultToken, config.SessionTimeout)
 	if err != nil {
 		log.Fatalf("error configuring crypt: %v", err)
@@ -70,6 +66,8 @@ func main() {
 	}
 
 	e.Use(middleware.Recover())
+
+	e.Static("/app", "./build")
 
 	postgresDb, err := postgres.ConfigurePostgres(ctx, postgresConnectionString)
 	if err != nil {

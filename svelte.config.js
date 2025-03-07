@@ -3,8 +3,6 @@ import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 
 /** @type {import('@sveltejs/kit').Config} */
 
-console.log(">>>>>>----  svelte.config:6 ", process.env.PUBLIC_SMARAKA_BASE);
-
 const config = {
   // Consult https://kit.svelte.dev/docs/integrations#preprocessors
   // for more information about preprocessors
