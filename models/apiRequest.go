@@ -80,9 +80,9 @@ type SecretDeactivateRequest struct {
 }
 
 type SignUpRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-	Name     string `json:"name" validate:"required"`
+	Email    string `json:"email" form:"email" validate:"required,email"`
+	Password string `json:"password" form:"password" validate:"required"`
+	Name     string `json:"name" form:"name" validate:"required"`
 }
 type LoginRequest struct {
 	Email    string `json:"email" form:"email" validate:"required,email"`
@@ -107,13 +107,14 @@ type UpdateOrgScheduleRequest struct {
 	ScheduleID string `json:"schedule_id"`
 	Status     string `json:"status"`
 }
+type CreateOrgScheduleRequest struct {
+	ScheduleName        string `json:"schedule_name" validate:"required"`
+	ScheduleDescription string `json:"schedule_description" validate:"required"`
+	ScheduleType        string `json:"schedule_type" validate:"required"`
+	IntervalDays        int    `json:"interval_days" validate:"required"`
+	ScheduleURL         string `json:"schedule_url" validate:"required"`
+}
 
-type OrgScheduleResponse struct {
-	ScheduleID  string `json:"schedule_id"`
-	Name        string `json:"schedule_name"`
-	Description string `json:"schedule_description"`
-	URL         string `json:"schedule_url"`
-	Meta        string `json:"schedule_meta"`
-	Status      string `json:"status"`
-	Interval    int    `json:"interval"`
+type DeleteScheduleRequest struct {
+	ScheduleIDs []string `json:"schedule_ids"`
 }

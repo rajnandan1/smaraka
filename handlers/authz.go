@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -51,36 +52,25 @@ func (h *HandlersImplementation) SignUp(c echo.Context) error {
 	var req models.SignUpRequest
 	if err := c.Bind(&req); err != nil {
 		logger.LogError("Error binding signup request", err)
-		return c.JSON(http.StatusBadRequest, models.Error{
-			Message: err.Error(),
-			Code:    constants.ERRORCODE_INVALID_URL,
-		})
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/signup?error="+url.QueryEscape(err.Error()))
 	}
 
 	if err := c.Validate(req); err != nil {
 		logger.LogError("Error validating signup request", err)
-		return c.JSON(http.StatusBadRequest, models.Error{
-			Message: err.Error(),
-			Code:    constants.ERRORCODE_INVALID_DETAIL,
-		})
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/signup?error="+url.QueryEscape(err.Error()))
 	}
 
 	if !validators.IsValidPassword(req.Password) {
 		logger.LogError("Invalid password strength", nil)
-		return c.JSON(http.StatusBadRequest, models.Error{
-			Message: "Password is not strong enough",
-			Code:    constants.ERRORCODE_INVALID_URL,
-		})
+
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/signup?error="+url.QueryEscape(constants.ERRORMSG_INVALID_PASSWORD))
 	}
 
 	//generate password hash
 	hash, err := h.crypto.HashPassword(req.Password)
 	if err != nil {
 		logger.LogError("Error hashing password", err)
-		return c.JSON(http.StatusInternalServerError, models.Error{
-			Message: err.Error(),
-			Code:    constants.ERRORCODE_INTERNAL_DETAIL,
-		})
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/signup?error="+url.QueryEscape(err.Error()))
 	}
 
 	newUser, err := h.db.InsertNewUser(ctx, models.Users{
@@ -94,20 +84,14 @@ func (h *HandlersImplementation) SignUp(c echo.Context) error {
 	})
 	if err != nil {
 		logger.LogError("Error inserting new user", err)
-		return c.JSON(http.StatusInternalServerError, models.Error{
-			Message: err.Error(),
-			Code:    constants.ERRORCODE_INTERNAL_DETAIL,
-		})
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/signup?error="+url.QueryEscape(err.Error()))
 	}
 
 	//generate token
 	token, exp, err := h.crypto.GenerateToken(newUser.ID)
 	if err != nil {
 		logger.LogError("Error generating token", err)
-		return c.JSON(http.StatusInternalServerError, models.Error{
-			Message: err.Error(),
-			Code:    constants.ERRORCODE_INTERNAL_DETAIL,
-		})
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/signup?error="+url.QueryEscape(err.Error()))
 	}
 
 	// h.config.
@@ -116,10 +100,8 @@ func (h *HandlersImplementation) SignUp(c echo.Context) error {
 	lastUsedOrg, orgUserErr := h.LastUserOrg(ctx, newUser.ID)
 	if orgUserErr != nil {
 		logger.LogError("Error getting last user organization", orgUserErr)
-		return c.JSON(http.StatusInternalServerError, models.Error{
-			Message: orgUserErr.Error(),
-			Code:    constants.ERRORCODE_INTERNAL_DETAIL,
-		})
+
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/signup?error="+url.QueryEscape(orgUserErr.Error()))
 	}
 
 	cookieToken := mddls.CreateCookie(exp, token, h.config.Environment, mddls.TokenCookieName)
@@ -245,67 +227,51 @@ func (h *HandlersImplementation) Login(c echo.Context) error {
 	var req models.LoginRequest
 	if err := c.Bind(&req); err != nil {
 		logger.LogError("Error binding login form data", err)
-		return c.JSON(http.StatusBadRequest, models.Error{
-			Message: "Invalid form data",
-			Code:    constants.ERRORCODE_INVALID_DETAIL,
-		})
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/login?error="+url.QueryEscape(err.Error()))
 	}
 
 	// Validate the bound data
 	if err := c.Validate(&req); err != nil {
 		logger.LogError("Error validating login form data", err)
-		return c.JSON(http.StatusBadRequest, models.Error{
-			Message: err.Error(),
-			Code:    constants.ERRORCODE_INVALID_DETAIL,
-		})
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/login?error="+url.QueryEscape(err.Error()))
+
 	}
 
 	hashedPassword, err := h.db.GetPasswordHashByEmail(ctx, req.Email)
 	if err != nil {
 		logger.LogError("Error getting user by email", err)
-		return c.JSON(http.StatusNotFound, models.Error{
-			Message: constants.ERRORMSG_USER_NOT_FOUND,
-			Code:    constants.ERRORCODE_USER_NOT_FOUND,
-		})
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/login?error="+url.QueryEscape(constants.ERRORMSG_USER_NOT_FOUND))
 	}
 
 	//check password
 	if err = h.crypto.ComparePassword([]byte(hashedPassword), req.Password); err != nil {
 		logger.LogError("Invalid password", nil)
-		return c.JSON(http.StatusUnauthorized, models.Error{
-			Message: constants.ERRORMSG_INVALID_PASSWORD,
-			Code:    constants.ERRORCODE_INVALID_PASSWORD,
-		})
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/login?error="+url.QueryEscape(constants.ERRORCODE_INVALID_PASSWORD))
+
 	}
 
 	//get user
 	user, err := h.db.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		logger.LogError("Error getting user by email", err)
-		return c.JSON(http.StatusNotFound, models.Error{
-			Message: constants.ERRORMSG_USER_NOT_FOUND,
-			Code:    constants.ERRORCODE_USER_NOT_FOUND,
-		})
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/login?error="+url.QueryEscape(constants.ERRORMSG_USER_NOT_FOUND))
+
 	}
 
 	//generate token
 	token, exp, err := h.crypto.GenerateToken(user.ID)
 	if err != nil {
 		logger.LogError("Error generating token", err)
-		return c.JSON(http.StatusInternalServerError, models.Error{
-			Message: err.Error(),
-			Code:    constants.ERRORCODE_INTERNAL_DETAIL,
-		})
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/login?error="+url.QueryEscape(err.Error()))
+
 	}
 
 	//get last used org
 	lastUsedOrg, orgUserErr := h.LastUserOrg(ctx, user.ID)
 	if orgUserErr != nil {
 		logger.LogError("Error getting last user organization", orgUserErr)
-		return c.JSON(http.StatusInternalServerError, models.Error{
-			Message: orgUserErr.Error(),
-			Code:    constants.ERRORCODE_INTERNAL_DETAIL,
-		})
+		return c.Redirect(http.StatusFound, h.config.FrontBasePath+"/login?error="+url.QueryEscape(err.Error()))
+
 	}
 
 	//create cookie

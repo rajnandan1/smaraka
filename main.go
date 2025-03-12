@@ -12,6 +12,7 @@ import (
 	"github.com/common-nighthawk/go-figure"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/rajnandan1/smaraka/bg"
 	"github.com/rajnandan1/smaraka/config"
 	"github.com/rajnandan1/smaraka/constants"
@@ -45,6 +46,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("error configuring crypt: %v", err)
 	}
+	htmlPolicy := bluemonday.UGCPolicy()
+	// htmlPolicy.AllowElements("b", "strong", "p", "i", "em", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "code", "pre", "figure", "figcaption", "div", "span", "br", "hr", "td", "th", "tr", "table", "thead", "tbody", "tfoot", "caption")
 
 	migrations.DoPostgresMigrationsUp(postgresConnectionString)
 
@@ -76,7 +79,7 @@ func main() {
 
 	migrations.DoRiverMigrationUp(postgresDb)
 
-	services, err := services.ConfigureServices(postgresDb, crypto)
+	services, err := services.ConfigureServices(postgresDb, crypto, htmlPolicy)
 	if err != nil {
 		panic(err)
 	}
@@ -116,6 +119,9 @@ func main() {
 	e.PATCH("/api/ui/url/bookmark-update/:id", handlers.PatchTextDataByID, authMdl, orgMdl)
 	e.GET("/api/ui/url/view-schedules", handlers.GetOrgSchedules, authMdl, orgMdl)
 	e.PATCH("/api/ui/url/update-schedules", handlers.UpdateOrgSchedule, authMdl, orgMdl)
+	e.PATCH("/api/ui/url/create-schedules", handlers.CreateOrgSchedule, authMdl, orgMdl)
+	e.POST("/api/ui/url/delete-schedules", handlers.DeleteOrgSchedules, authMdl, orgMdl)
+	e.POST("/api/ui/url/run-schedules", handlers.RunOrgSchedules, authMdl, orgMdl)
 
 	e.GET("/api/ui/url/bookmarks-queue", handlers.JobQueueStatus, authMdl, orgMdl)
 	e.GET("/api/ui/url/bookmarks-export", handlers.ExportBookmarks, authMdl, orgMdl)

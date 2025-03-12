@@ -45,6 +45,9 @@ type Handlers interface {
 
 	GetOrgSchedules(c echo.Context) error
 	UpdateOrgSchedule(c echo.Context) error
+	CreateOrgSchedule(c echo.Context) error
+	DeleteOrgSchedules(c echo.Context) error
+	RunOrgSchedules(c echo.Context) error
 }
 type HandlersImplementation struct {
 	db     postgres.Postgres

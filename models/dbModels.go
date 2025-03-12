@@ -103,18 +103,12 @@ type Schedule struct {
 	ScheduleID          string    `json:"schedule_id"`
 	ScheduleName        string    `json:"schedule_name"`
 	ScheduleDescription string    `json:"schedule_description"`
+	ScheduleType        string    `json:"schedule_type"`
+	ScheduleStatus      string    `json:"schedule_status"`
 	ScheduleURL         string    `json:"schedule_url"`
 	ScheduleMeta        string    `json:"schedule_meta"`
 	CreatedAt           time.Time `json:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at"`
-	DefaultIntervalDays int       `json:"default_interval_days"`
-}
-
-type OrgSchedule struct {
-	OrganizationID string    `json:"organization_id"`
-	ScheduleID     string    `json:"schedule_id"`
-	Status         string    `json:"status"`
-	IntervalDays   int       `json:"interval_days"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	IntervalDays        int       `json:"interval_days"`
+	OrganizationID      string    `json:"organization_id"`
 }

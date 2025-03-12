@@ -6,11 +6,18 @@
   import { base } from "$app/paths";
   import { login } from "$lib/api";
   import { LoaderCircle } from "lucide-svelte";
+  import { onMount } from "svelte";
 
   let email = "";
   let password = "";
   let error = "";
   let loading = false;
+  let errorMsg = "";
+
+  onMount(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    errorMsg = urlParams.get("error");
+  });
 </script>
 
 <div class="relative grid h-screen grid-cols-2 bg-background">
@@ -26,7 +33,7 @@
     </div>
 
     <div>
-      <Button href="{base}/signup" variant="ghost" class="font-normal">Create Account</Button>
+      <Button href="{base}/signup" variant="secondary" class="font-normal text-white">Create Account</Button>
     </div>
   </div>
   <div
@@ -40,6 +47,11 @@
         <Card.Description>Welcome back! Login to your account.</Card.Description>
       </Card.Header>
       <Card.Content>
+        {#if !!errorMsg}
+          <p class="my-4 rounded-md border border-destructive p-2 text-xs font-medium text-destructive">
+            Error: {errorMsg}
+          </p>
+        {/if}
         <form method="post" action="/api/ui/user/login">
           <div class="flex w-full max-w-sm flex-col gap-1.5">
             <Label for="email-2">Email</Label>

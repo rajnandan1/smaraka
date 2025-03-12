@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/rajnandan1/smaraka/constants"
 	"github.com/rajnandan1/smaraka/logger"
 	"github.com/rajnandan1/smaraka/models"
 	"github.com/rajnandan1/smaraka/utils"
@@ -15,7 +16,15 @@ import (
 
 //handle sch_gh_tranding
 
-func HandleGHTrending(githubURL string) (*[]string, error) {
+func HandleGHTrending(githubURL string, interval int) (*[]string, error) {
+
+	if interval == 1 {
+		githubURL = githubURL + "/trending?since=daily"
+	} else if interval == 7 {
+		githubURL = githubURL + "/trending?since=weekly"
+	} else if interval == 30 {
+		githubURL = githubURL + "/trending?since=monthly"
+	}
 
 	html, err := utils.FetchHTML(githubURL)
 	if err != nil {
@@ -53,6 +62,33 @@ func HandleGHTrending(githubURL string) (*[]string, error) {
 
 	return &results, nil
 
+}
+
+func HandleHackerNews(url string) (*[]string, error) {
+	html, err := utils.FetchHTML(url)
+	if err != nil {
+		logger.LogError("Error fetching HackerNews", err)
+		return nil, err
+	}
+
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
+	if err != nil {
+		logger.LogError("Error parsing HackerNews", err)
+		return nil, err
+	}
+
+	results := make([]string, 0)
+	doc.Find(".submission .titleline > a").Each(func(i int, s *goquery.Selection) {
+		if href, ok := s.Attr("href"); ok {
+			results = append(results, href)
+		}
+	})
+
+	if len(results) == 0 {
+		logger.LogInfo("No HackerNews results found", nil)
+		return nil, nil
+	}
+	return &results, nil
 }
 
 // create phurl given interval
@@ -109,59 +145,68 @@ func HandlePHDaily(phURL string) (*[]string, error) {
 	return &results, nil
 }
 
-func (s *ServicesImplementation) DailySchedules(ctx context.Context, interval int) (*[]models.PeriodicResponse, error) {
-	dailySchedules, err := s.db.GetOrgSchedulesInterval(ctx, interval)
+func (s *ServicesImplementation) RunSchedule(ctx context.Context, interval int) (*[]models.PeriodicResponse, error) {
+	dailySchedules, err := s.db.GetActiveSchedulesWithInterval(ctx, interval)
 	if err != nil {
 		return nil, err
 	}
+	return s.CreateRun(dailySchedules)
+}
 
-	//get all the schedule ids first
-	scheduleIDs := make([]string, 0)
-	for _, schedule := range dailySchedules {
-		scheduleIDs = append(scheduleIDs, schedule.ScheduleID)
+func (s *ServicesImplementation) PlaySchedule(ctx context.Context, schedule_ids []string, org_id string) (*[]models.PeriodicResponse, error) {
+	dailySchedules, err := s.db.GetSchedulesByIDsAndOrgIDs(ctx, schedule_ids, org_id)
+	if err != nil {
+		return nil, err
+	}
+	return s.CreateRun(dailySchedules)
+}
+
+func (s *ServicesImplementation) CreateRun(dailySchedules *[]models.Schedule) (*[]models.PeriodicResponse, error) {
+
+	if dailySchedules == nil {
+		return nil, nil
 	}
 
-	//create a map[string][][]string to store the urls against the schedule id
-	urlsMap := make(map[string][]string)
-	for _, schedule := range dailySchedules {
-		urlsMap[schedule.ScheduleID] = make([]string, 0)
-	}
+	orgMap := make(map[string][]string)
+	for _, schedule := range *dailySchedules {
 
-	for _, scheduleID := range scheduleIDs {
-		urls := make([]string, 0)
-		schedule, err := s.db.GetScheduleByID(ctx, scheduleID)
-		if err != nil {
-			return nil, err
+		if _, ok := orgMap[schedule.OrganizationID]; !ok {
+			orgMap[schedule.OrganizationID] = make([]string, 0)
 		}
 
-		switch schedule.ScheduleID {
-		case "sch_gh_trending_daily", "sch_gh_trending_monthly", "sch_gh_trending_weekly":
-			if repos, err := HandleGHTrending(schedule.ScheduleURL); err == nil && repos != nil {
-				urls = *repos
+		switch schedule.ScheduleType {
+		case constants.ScheduleTypeGHTrending:
+			if repos, err := HandleGHTrending(schedule.ScheduleURL, schedule.IntervalDays); err == nil && repos != nil {
+				orgMap[schedule.OrganizationID] = append(orgMap[schedule.OrganizationID], *repos...)
 			}
-		case "sch_ph_leaderboard_daily", "sch_ph_leaderboard_monthly", "sch_ph_leaderboard_weekly":
-			phURL := schedule.ScheduleURL + createPhURL(interval)
+		case constants.ScheduleTypeHNTrending:
+			if urls, err := HandleHackerNews(schedule.ScheduleURL); err == nil && urls != nil {
+				orgMap[schedule.OrganizationID] = append(orgMap[schedule.OrganizationID], *urls...)
+			}
+		case constants.ScheduleTypeGHStarredRepo:
+			repos, err := s.ImportGithubStars(schedule.ScheduleURL)
+			if err == nil && repos != nil {
+				for _, repo := range *repos {
+					orgMap[schedule.OrganizationID] = append(orgMap[schedule.OrganizationID], repo.URL)
+				}
+			}
 
+		case constants.ScheduleTypePHLeaderBoard:
+			phURL := schedule.ScheduleURL + createPhURL(schedule.IntervalDays)
 			if products, err := HandlePHDaily(phURL); err == nil && products != nil {
-				urls = *products
+				orgMap[schedule.OrganizationID] = append(orgMap[schedule.OrganizationID], *products...)
 			}
 		}
-		urlsMap[scheduleID] = urls
 	}
 
-	//create the response
-	periodicData := make(map[string][]string)
-	for _, orgSchedule := range dailySchedules {
-		periodicData[orgSchedule.OrganizationID] = append(periodicData[orgSchedule.OrganizationID], urlsMap[orgSchedule.ScheduleID]...)
-	}
-
-	var urls []models.PeriodicResponse
-	for orgID, urlList := range periodicData {
-		urls = append(urls, models.PeriodicResponse{
+	//create the response by iterating over the orgMap
+	periodicResponse := make([]models.PeriodicResponse, 0)
+	for orgID, urls := range orgMap {
+		periodicResponse = append(periodicResponse, models.PeriodicResponse{
 			OrganizationID: orgID,
-			URLs:           &urlList,
+			URLs:           urls,
 		})
 	}
 
-	return &urls, nil
+	return &periodicResponse, nil
 }

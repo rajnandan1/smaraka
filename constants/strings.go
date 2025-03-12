@@ -55,4 +55,12 @@ const (
 	//OrderState
 	OrderActive = "ACTIVE"
 	OrderPaid   = "PAID"
+
+	//Schedule Status
+	ScheduleStatusActive      = "ACTIVE"
+	ScheduleStatusInactive    = "INACTIVE"
+	ScheduleTypeGHTrending    = "GH_TRENDING"
+	ScheduleTypePHLeaderBoard = "PH_LEADERBOARD"
+	ScheduleTypeGHStarredRepo = "GH_STARRED_REPO"
+	ScheduleTypeHNTrending    = "HN_TRENDING"
 )

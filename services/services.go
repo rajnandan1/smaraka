@@ -76,19 +76,8 @@ func (s *ServicesImplementation) GetContentEasy(url string) (*models.URLStore, e
 func (s *ServicesImplementation) DoContentCompleteByID(url string) (*models.URLStore, error) {
 
 	//add a timeout for context cancel 60 secs
-	options := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.UserAgent(constants.HeadlessUserAgent),
-	)
-
-	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), options...)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
-
-	ctx, cancel := chromedp.NewContext(allocCtx)
-	defer cancel()
-
-	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
-	defer cancel()
-
 	urlStore, err := s.db.GetURLStoreByURL(ctx, url)
 	if err != nil {
 		logger.LogError("Error getting URLStore by URL", err)
@@ -101,11 +90,8 @@ func (s *ServicesImplementation) DoContentCompleteByID(url string) (*models.URLS
 		return nil, err
 	}
 
-	result, errParse := utils.ParseFetch(htmlText)
-	if errParse != nil {
-		logger.LogError("Error parsing page to markdown", errParse)
-		return nil, errParse
-	}
+	result := strings.Trim(s.policy.Sanitize(htmlText), " ")
+	result = utils.StripHTML(result)
 
 	if newBookmark, newBookmarkErr := utils.ParseSEOFromHTML(htmlText); newBookmarkErr == nil {
 		if newBookmark.Title != "" {
@@ -229,13 +215,8 @@ func (s *ServicesImplementation) BulkLightAndFullJob(validURLs []string, orgId s
 			continue
 		}
 
-		result, errParse := utils.ParseFetch(htmlText)
-
-		if errParse != nil {
-			logger.LogError("Error parsing page", errParse)
-			s.db.UpdateJobQueueStatus(ctx, orgId, validURL, constants.JobQueueStatusFailed)
-			continue
-		}
+		result := strings.Trim(s.policy.Sanitize(htmlText), " ")
+		result = utils.StripHTML(result)
 
 		if newBookmark, newBookmarkErr := utils.ParseSEOFromHTML(htmlText); newBookmarkErr == nil {
 			urlStore.Title = newBookmark.Title

@@ -41,7 +41,7 @@ func (w *PeriodicJobWorker) Work(ctx context.Context, job *river.Job[PeriodicJob
 
 	fmt.Printf("Running %s job at %d\n", job.Kind, job.Args.Interval)
 
-	orgDataURLs, err := w.Service.DailySchedules(ctx, job.Args.Interval)
+	orgDataURLs, err := w.Service.RunSchedule(ctx, job.Args.Interval)
 	if err != nil {
 
 		return err
@@ -49,7 +49,7 @@ func (w *PeriodicJobWorker) Work(ctx context.Context, job *river.Job[PeriodicJob
 
 	//loop through the orgDataURLs and create a job for each
 	for _, orgData := range *orgDataURLs {
-		w.Service.BulkLightAndFullJob(*orgData.URLs, orgData.OrganizationID)
+		w.Service.BulkLightAndFullJob(orgData.URLs, orgData.OrganizationID)
 	}
 
 	return nil

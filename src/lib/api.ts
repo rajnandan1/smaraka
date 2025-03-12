@@ -362,16 +362,71 @@ export async function getSchedules(id: String): Promise<any> {
   });
 }
 
-export async function updateSchedule(schedule_id: String, status: String, interval: Number): Promise<any> {
+export async function updateSchedule(schedule_id: String, status: String): Promise<any> {
   const apiURL = `${serverAPIURL}/url/update-schedules`;
   const headers = {
     "Content-Type": "application/json",
   };
-  const body = JSON.stringify({ schedule_id, status, interval });
+  const body = JSON.stringify({ schedule_id, status });
   //use axios
   return new Promise((resolve, reject) => {
     axios
       .patch(apiURL, body, { headers })
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+}
+
+export async function createSchedule(schedule: any): Promise<any> {
+  const apiURL = `${serverAPIURL}/url/create-schedules`;
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  const body = JSON.stringify(schedule);
+  //use axios
+  return new Promise((resolve, reject) => {
+    axios
+      .patch(apiURL, body, { headers })
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+}
+export async function deleteSchedules(scheduleIds: string[]): Promise<any> {
+  const apiURL = `${serverAPIURL}/url/delete-schedules`;
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  const body = JSON.stringify({ schedule_ids: scheduleIds });
+  //use axios
+  return new Promise((resolve, reject) => {
+    axios
+      .post(apiURL, body, { headers })
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+}
+export async function playSchedules(scheduleIds: string[]): Promise<any> {
+  const apiURL = `${serverAPIURL}/url/run-schedules`;
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  const body = JSON.stringify({ schedule_ids: scheduleIds });
+  //use axios
+  return new Promise((resolve, reject) => {
+    axios
+      .post(apiURL, body, { headers })
       .then((response) => {
         resolve(response.data);
       })

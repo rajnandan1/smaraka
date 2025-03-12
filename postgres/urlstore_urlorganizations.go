@@ -50,27 +50,26 @@ func (p *PostgresImplementation) SearchURLs(ctx context.Context, orgID, query, d
 	// Prepare SQL statement
 
 	terms := strings.Fields(query) // Split the query by whitespace
-	boostedQuery := query + "^2"
-
 	queryStr := `
-        SELECT us.id as url_id, us.title, us.url, us.excerpt, us.image_sm, us.image_lg, us.color, 
-        uo.id as organization_relation_id, uo.status as organization_url_status, paradedb.score(us.id)
-        FROM url_organizations uo
-        JOIN url_store us ON uo.url_id = us.id 
-        WHERE uo.organization_id = $1 AND (
-            us.id @@@ paradedb.phrase('full_content', $3::text[], slop => 10)
-            or 
-            us.id @@@ paradedb.phrase_prefix('excerpt', $3::text[])
-            or 
-						us.id @@@ paradedb.term('domain', $4)
-            or 
-            us.title @@@ $5
-        ) and uo.status = $2`
+			SELECT us.id as url_id, us.title, us.url, us.excerpt, us.image_sm, us.image_lg, us.color,
+			uo.id as organization_relation_id, uo.status as organization_url_status, paradedb.score(us.id)
+			FROM url_organizations uo
+			JOIN url_store us ON uo.url_id = us.id
+			WHERE uo.organization_id = $1 AND (
+				us.id @@@ paradedb.phrase('full_content', $3::text[], slop => 10)
+				or
+				us.id @@@ paradedb.phrase_prefix('excerpt', $3::text[])
+				or
+				us.id @@@ paradedb.term('domain', $4)
+				or
+				us.id @@@ paradedb.phrase_prefix('title', $3::text[])
+			) and uo.status = $2
+		`
 
 	queryStr += " ORDER BY paradedb.score(us.id) DESC limit 100;"
 
 	var rows pgx.Rows
-	rows, err := p.Pool.Query(ctx, queryStr, orgID, constants.URLStatusActive, terms, query, boostedQuery)
+	rows, err := p.Pool.Query(ctx, queryStr, orgID, constants.URLStatusActive, terms, query)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to search urls: %v", err)

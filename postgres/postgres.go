@@ -85,10 +85,14 @@ type Postgres interface {
 	InsertOrder(ctx context.Context, order models.Orders) (*models.Orders, error)
 	UpdateOrder(ctx context.Context, order_id, order_object string) (*models.Orders, error)
 
-	GetOrgSchedules(ctx context.Context, org_id string) ([]models.OrgScheduleResponse, error)
-	InsertNewOrgSchedule(ctx context.Context, org_id string, schedule_id string, status string) error
-	GetOrgSchedulesInterval(ctx context.Context, interval int) ([]models.OrgSchedule, error)
+	GetActiveOrgSchedules(ctx context.Context, org_id string) (*[]models.Schedule, error)
+	InsertSchedule(ctx context.Context, schedule *models.Schedule) error
+	GetAllSchedulesForORG(ctx context.Context, orgID string) (*[]models.Schedule, error)
 	GetScheduleByID(ctx context.Context, schedule_id string) (*models.Schedule, error)
+	UpdateScheduleStatus(ctx context.Context, schedule_id, org_id, status string) error
+	DeleteScheduleByIDs(ctx context.Context, schedule_ids []string, org_id string) error
+	GetActiveSchedulesWithInterval(ctx context.Context, interval int) (*[]models.Schedule, error)
+	GetSchedulesByIDsAndOrgIDs(ctx context.Context, schedule_ids []string, org_id string) (*[]models.Schedule, error)
 }
 
 // PostgresImplementation holds the connection pool

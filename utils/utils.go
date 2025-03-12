@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"
 	"encoding/base64"
@@ -15,13 +16,13 @@ import (
 	"strings"
 	"time"
 
-	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/chromedp"
 	"github.com/rajnandan1/smaraka/constants"
 	"github.com/rajnandan1/smaraka/logger"
 	"github.com/rajnandan1/smaraka/models"
+	"golang.org/x/net/html"
 
 	"github.com/spaolacci/murmur3"
 )
@@ -61,7 +62,7 @@ func FetchHTML(url string) (string, error) {
 
 	// Perform the HTTP GET request with a custom User-Agent header
 	client := http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 10 * time.Second,
 	}
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -130,10 +131,35 @@ func MurmurHashToRange(s string) string {
 	return "#" + hexStr
 }
 
+// StripHTML removes all HTML tags from a given string
+func StripHTML(input string) string {
+	doc, err := html.Parse(bytes.NewReader([]byte(input)))
+	if err != nil {
+		return input // Return original string if parsing fails
+	}
+	var buf bytes.Buffer
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if n.Type == html.TextNode {
+			buf.WriteString(n.Data)
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+			// Insert a space after each child node to replace HTML tags with a space
+			if c.NextSibling != nil {
+				buf.WriteString(" ")
+			}
+		}
+	}
+	f(doc)
+	// Normalize whitespace: collapse multiple spaces into one and trim spaces
+	re := regexp.MustCompile(`\s+`)
+	return strings.TrimSpace(re.ReplaceAllString(buf.String(), " "))
+}
+
 func ParseFetch(htmlText string) (string, error) {
-
-	return htmltomarkdown.ConvertString(htmlText)
-
+	//strip html of tags
+	return StripHTML(htmlText), nil
 }
 
 func ParseSEOFromHTML(html string) (*models.URLStore, error) {
@@ -255,7 +281,7 @@ func RemoveAllNewlines(s string) string {
 
 func FetchInnerHTMLChrome(url string) (string, error) {
 	options := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"),
+		chromedp.UserAgent(constants.HeadlessUserAgent),
 	)
 
 	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), options...)

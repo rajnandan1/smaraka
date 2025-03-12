@@ -10,8 +10,7 @@ import (
 	"github.com/rajnandan1/smaraka/utils"
 )
 
-func doGithub(username string, pageNo int) (*[]models.GithubRepo, error) {
-	githubURL := "https://github.com/stars/" + username + "/repositories?direction=desc&filter=all&page=" + strconv.Itoa(pageNo) + "&sort=created"
+func doGithub(githubURL string) (*[]models.GithubRepo, error) {
 	logger.LogInfo("Fetching Github repos for user", githubURL)
 	html, err := utils.FetchHTML(githubURL)
 	if err != nil {
@@ -51,11 +50,12 @@ func doGithub(username string, pageNo int) (*[]models.GithubRepo, error) {
 	return &results, nil
 }
 
-func (s *ServicesImplementation) ImportGithubStars(username string) (*[]models.GithubRepo, error) {
+func (s *ServicesImplementation) ImportGithubStars(ghUrl string) (*[]models.GithubRepo, error) {
 
 	results := make([]models.GithubRepo, 0)
 	for i := 1; i < 101; i++ {
-		if repos, err := doGithub(username, i); err == nil && repos != nil {
+		githubURL := ghUrl + "?direction=desc&filter=all&page=" + strconv.Itoa(i) + "&sort=created"
+		if repos, err := doGithub(githubURL); err == nil && repos != nil {
 			results = append(results, *repos...)
 		} else {
 			break
